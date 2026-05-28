@@ -15,8 +15,8 @@ export function usePayments(memberId?: string) {
       .select('*, member:members(id,name,photo_url), member_plan:member_plans(id,start_date,end_date,plan:plans(name))')
       .order('due_date', { ascending: false })
     if (memberId) q = q.eq('member_id', memberId)
-    const { data } = await q
-    setPayments((data as Payment[]) ?? [])
+    const result = await q
+    setPayments((result.data as Payment[]) ?? [])
     setLoading(false)
   }, [memberId])
 

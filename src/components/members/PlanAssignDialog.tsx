@@ -33,17 +33,17 @@ export function PlanAssignDialog({ memberId, onClose, onDone }: Props) {
     setLoading(true)
     const supabase = createClient()
 
-    const { data: mp, error: mpErr } = await supabase
+    const mpResult = await supabase
       .from('member_plans')
       .insert({ member_id: memberId, plan_id: planId, start_date: startDate, end_date: endDate })
       .select()
       .single()
 
-    if (mpErr) { toast.error('Erro ao vincular plano'); setLoading(false); return }
+    if (mpResult.error) { toast.error('Erro ao vincular plano'); setLoading(false); return }
 
     await supabase.from('payments').insert({
       member_id: memberId,
-      member_plan_id: mp.id,
+      member_plan_id: (mpResult.data as { id: string }).id,
       amount: selectedPlan!.price,
       due_date: startDate,
     })

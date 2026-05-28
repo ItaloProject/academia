@@ -10,11 +10,11 @@ export function useMembers() {
   const fetchMembers = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    const { data } = await supabase
+    const result = await supabase
       .from('members')
       .select('*')
       .order('name')
-    setMembers(data ?? [])
+    setMembers((result.data as Member[]) ?? [])
     setLoading(false)
   }, [])
 
@@ -34,8 +34,8 @@ export function useMember(id: string) {
       .select('*')
       .eq('id', id)
       .single()
-      .then(({ data }) => {
-        setMember(data)
+      .then(result => {
+        setMember(result.data as Member | null)
         setLoading(false)
       })
   }, [id])

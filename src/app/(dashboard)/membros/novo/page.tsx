@@ -1,10 +1,15 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/Header'
 import { MemberForm, type MemberFormData } from '@/components/members/MemberForm'
-import { FaceEnroll } from '@/components/facial/FaceEnroll'
+
+const FaceEnroll = dynamic(
+  () => import('@/components/facial/FaceEnroll').then(m => m.FaceEnroll),
+  { ssr: false }
+)
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
@@ -26,16 +31,16 @@ export default function NovoMembroPage() {
       birth_date: data.birth_date || null,
       notes: data.notes || null,
     }
-    const { data: created, error } = await supabase
+    const result = await supabase
       .from('members')
       .insert(payload)
       .select()
       .single()
 
-    if (error) {
-      toast.error('Erro ao cadastrar membro: ' + error.message)
+    if (result.error) {
+      toast.error('Erro ao cadastrar membro: ' + result.error.message)
     } else {
-      setMemberId(created.id)
+      setMemberId((result.data as { id: string }).id)
       toast.success('Membro cadastrado! Agora cadastre o rosto.')
       setTab('facial')
     }

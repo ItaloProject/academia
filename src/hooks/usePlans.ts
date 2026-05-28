@@ -12,8 +12,8 @@ export function usePlans(onlyActive = false) {
     const supabase = createClient()
     let q = supabase.from('plans').select('*').order('price')
     if (onlyActive) q = q.eq('active', true)
-    const { data } = await q
-    setPlans(data ?? [])
+    const result = await q
+    setPlans((result.data as Plan[]) ?? [])
     setLoading(false)
   }, [onlyActive])
 

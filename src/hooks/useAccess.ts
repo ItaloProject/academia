@@ -10,12 +10,12 @@ export function useAccessLogs() {
   const fetchLogs = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    const { data } = await supabase
+    const result = await supabase
       .from('access_logs')
       .select('*, member:members(id,name,photo_url)')
       .order('accessed_at', { ascending: false })
       .limit(200)
-    setLogs((data as AccessLog[]) ?? [])
+    setLogs((result.data as AccessLog[]) ?? [])
     setLoading(false)
   }, [])
 
