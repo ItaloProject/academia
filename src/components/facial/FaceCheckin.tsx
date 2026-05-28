@@ -16,6 +16,22 @@ interface CheckinResult {
 }
 
 const SCAN_INTERVAL_MS = 1500
+const IS_DEMO = !process.env.NEXT_PUBLIC_SUPABASE_URL
+
+const DEMO_MEMBER: Member = {
+  id: 'demo',
+  name: 'Membro Demo',
+  status: 'active',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  email: null,
+  cpf: null,
+  phone: null,
+  birth_date: null,
+  notes: null,
+  photo_url: null,
+  face_descriptor: null,
+}
 
 export function FaceCheckin() {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -43,39 +59,41 @@ export function FaceCheckin() {
   }, [stopInterval]) // eslint-disable-line
 
   const processFrame = useCallback(async () => {
-    if (processingRef.current || !videoRef.current || allMembers.length === 0) return
+    if (processingRef.current || !videoRef.current) return
+    // Em modo real, aguarda membros carregarem
+    if (!IS_DEMO && allMembers.length === 0) return
     processingRef.current = true
     try {
       const descriptor = await extractDescriptor(videoRef.current)
       if (!descriptor) return
+
+      if (IS_DEMO) {
+        // Modo demo: qualquer rosto detectado = entrada liberada
+        showResult({ member: DEMO_MEMBER, allowed: true })
+        return
+      }
 
       const match = findBestMatch(descriptor, allMembers)
       if (!match) { setState('unknown'); return }
 
       setState('scanning')
       const supabase = createClient()
-      const isDemo = !process.env.NEXT_PUBLIC_SUPABASE_URL
-      let allowed = true
-
-      if (!isDemo) {
-        const today = new Date().toISOString().slice(0, 10)
-        const { data: activePlan } = await supabase
-          .from('member_plans')
-          .select('id')
-          .eq('member_id', match.member.id)
-          .eq('status', 'active')
-          .gte('end_date', today)
-          .limit(1)
-          .single()
-        allowed = !!activePlan
-        await supabase.from('access_logs').insert({
-          member_id: match.member.id,
-          method: 'facial',
-          allowed,
-          notes: allowed ? null : 'Plano inativo ou vencido',
-        })
-      }
-
+      const today = new Date().toISOString().slice(0, 10)
+      const { data: activePlan } = await supabase
+        .from('member_plans')
+        .select('id')
+        .eq('member_id', match.member.id)
+        .eq('status', 'active')
+        .gte('end_date', today)
+        .limit(1)
+        .single()
+      const allowed = !!activePlan
+      await supabase.from('access_logs').insert({
+        member_id: match.member.id,
+        method: 'facial',
+        allowed,
+        notes: allowed ? null : 'Plano inativo ou vencido',
+      })
       showResult({
         member: match.member,
         allowed,
@@ -97,7 +115,9 @@ export function FaceCheckin() {
       const supabase = createClient()
       const [, membersResult] = await Promise.all([
         loadModels(),
-        supabase.from('members').select('*').eq('status', 'active').not('face_descriptor', 'is', null),
+        IS_DEMO
+          ? Promise.resolve({ data: [] })
+          : supabase.from('members').select('*').eq('status', 'active').not('face_descriptor', 'is', null),
       ])
       if (!mounted) return
       setAllMembers((membersResult.data as Member[]) ?? [])
