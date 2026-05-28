@@ -1,10 +1,15 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { Header } from '@/components/layout/Header'
 import { MemberForm, type MemberFormData } from '@/components/members/MemberForm'
-import { FaceEnroll } from '@/components/facial/FaceEnroll'
+
+const FaceEnroll = dynamic(
+  () => import('@/components/facial/FaceEnroll').then(m => m.FaceEnroll),
+  { ssr: false }
+)
 import { StatusBadge } from '@/components/members/StatusBadge'
 import { PlanAssignDialog } from '@/components/members/PlanAssignDialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
