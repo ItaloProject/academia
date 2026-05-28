@@ -58,7 +58,8 @@ export function FaceEnroll({ memberId, onDone }: FaceEnrollProps) {
         .from('members')
         .update({ face_descriptor: descriptor })
         .eq('id', memberId)
-      if (dbErr) throw dbErr
+      // Em modo demo (sem Supabase), ignora erro de banco e conclui normalmente
+      if (dbErr && process.env.NEXT_PUBLIC_SUPABASE_URL) throw dbErr
       setStep('done')
       toast.success('Rosto cadastrado com sucesso!')
     } catch {

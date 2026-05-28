@@ -40,7 +40,9 @@ export default function NovoMembroPage() {
     if (result.error) {
       toast.error('Erro ao cadastrar membro: ' + result.error.message)
     } else {
-      setMemberId((result.data as { id: string }).id)
+      // Em modo demo (sem Supabase), data é null — gera um ID temporário
+      const id = (result.data as { id: string } | null)?.id ?? crypto.randomUUID()
+      setMemberId(id)
       toast.success('Membro cadastrado! Agora cadastre o rosto.')
       setTab('facial')
     }

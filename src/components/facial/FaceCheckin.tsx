@@ -54,23 +54,27 @@ export function FaceCheckin() {
 
       setState('scanning')
       const supabase = createClient()
-      const today = new Date().toISOString().slice(0, 10)
-      const { data: activePlan } = await supabase
-        .from('member_plans')
-        .select('id')
-        .eq('member_id', match.member.id)
-        .eq('status', 'active')
-        .gte('end_date', today)
-        .limit(1)
-        .single()
+      const isDemo = !process.env.NEXT_PUBLIC_SUPABASE_URL
+      let allowed = true
 
-      const allowed = !!activePlan
-      await supabase.from('access_logs').insert({
-        member_id: match.member.id,
-        method: 'facial',
-        allowed,
-        notes: allowed ? null : 'Plano inativo ou vencido',
-      })
+      if (!isDemo) {
+        const today = new Date().toISOString().slice(0, 10)
+        const { data: activePlan } = await supabase
+          .from('member_plans')
+          .select('id')
+          .eq('member_id', match.member.id)
+          .eq('status', 'active')
+          .gte('end_date', today)
+          .limit(1)
+          .single()
+        allowed = !!activePlan
+        await supabase.from('access_logs').insert({
+          member_id: match.member.id,
+          method: 'facial',
+          allowed,
+          notes: allowed ? null : 'Plano inativo ou vencido',
+        })
+      }
 
       showResult({
         member: match.member,
