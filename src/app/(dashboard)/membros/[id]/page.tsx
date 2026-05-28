@@ -35,9 +35,9 @@ export default function MemberDetailPage() {
   useEffect(() => {
     const supabase = createClient()
     supabase.from('member_plans').select('*, plan:plans(*)').eq('member_id', id).order('created_at', { ascending: false })
-      .then(({ data }) => setMemberPlans((data as MemberPlan[]) ?? []))
+      .then(({ data }: { data: unknown }) => setMemberPlans((data as MemberPlan[]) ?? []))
     supabase.from('payments').select('*, member_plan:member_plans(*, plan:plans(name))').eq('member_id', id).order('due_date', { ascending: false })
-      .then(({ data }) => setPayments((data as Payment[]) ?? []))
+      .then(({ data }: { data: unknown }) => setPayments((data as Payment[]) ?? []))
   }, [id])
 
   async function handleEdit(data: MemberFormData) {

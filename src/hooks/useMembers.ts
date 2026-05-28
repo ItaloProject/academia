@@ -34,7 +34,7 @@ export function useMember(id: string) {
       .select('*')
       .eq('id', id)
       .single()
-      .then(({ data }) => {
+      .then(({ data }: { data: unknown }) => {
         setMember(data)
         setLoading(false)
       })
