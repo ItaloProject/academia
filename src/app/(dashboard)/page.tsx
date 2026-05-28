@@ -33,7 +33,7 @@ export default function DashboardPage() {
         supabase.from('access_logs').select('*').order('accessed_at', { ascending: false }).limit(100),
       ])
 
-      const members = (membersRes.data ?? []) as { id: string; status: string }[]
+      const members = membersRes.data ?? []
       setStats({
         totalMembers: members.length,
         activeMembers: members.filter(m => m.status === 'active').length,

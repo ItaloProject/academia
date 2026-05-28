@@ -2,9 +2,9 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { createMockClient } from './mock'
 
-export async function createClient() {
+export async function createClient(): Promise<ReturnType<typeof createServerClient>> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return createMockClient()
+    return createMockClient() as unknown as ReturnType<typeof createServerClient>
   }
   const cookieStore = await cookies()
   return createServerClient(
